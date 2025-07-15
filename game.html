@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ClickCoin Tycoon</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background-color: black;
+      color: white;
+      font-family: 'Press Start 2P', cursive, monospace;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      user-select: none;
+      justify-content: space-between;
+    }
+
+    /* Top coin count */
+    .left-panel {
+      flex: none;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    #coin-count {
+      font-size: 80px;
+      font-weight: 900;
+      user-select: text;
+    }
+
+    /* Upgrades list area */
+    .right-panel {
+  flex: 1;
+  padding: 100px 30px 0 30px; /* ⬅ added top padding to push content down */
+  overflow-y: auto;
+  max-width: 600px;
+  margin: 0 auto 20px auto;
+  box-sizing: border-box;
+}
+
+
+    /* Bottom panel with click button and stats */
+    .bottom-panel {
+      display: flex;
+      justify-content: space-between; /* Left and right alignment */
+      align-items: center;
+      padding: 15px 50px;
+      background-color: #121212;
+      flex-wrap: wrap;
+      user-select: none;
+    }
+
+    /* Left side: click button container */
+    .click-container {
+      flex-shrink: 0;
+    }
+
+    /* Big yellow circle "Clicks" button */
+    #coin {
+      background-color: #f3c23b;
+      color: black;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 0 10px #f3c23b;
+      margin: 0;
+    }
+
+    /* Right side: buttons container */
+    .buttons-container {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* Yellow rectangular buttons */
+    .yellow-btn {
+      background-color: #f3c23b;
+      color: black;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      padding: 12px 20px;
+      cursor: default;
+      letter-spacing: 1px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      user-select: text;
+    }
+
+    /* Big cyan upgrade button */
+    #upgrade-btn {
+      background-color: #20f7fc;
+      color: black;
+      border: none;
+      border-radius: 8px;
+      font-size: 24px;
+      padding: 0 30px;
+      cursor: pointer;
+      font-weight: bold;
+      height: 60px;
+      transition: background-color 0.3s ease;
+    }
+
+    #upgrade-btn:hover {
+      background-color: #17c0c6;
+    }
+
+    /* Upgrade option boxes */
+    .upgrade-option {
+      background-color: #b74e31;
+      width: 100%;
+      padding: 12px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      user-select: none;
+      color: white;
+      font-size: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 0 8px #b74e31;
+      transition: background-color 0.3s ease;
+      margin-bottom: 12px;
+    }
+    .upgrade-option.locked {
+      background-color: #3a2a26;
+      cursor: not-allowed;
+      box-shadow: none;
+      color: #777;
+    }
+
+    .upgrade-option:hover:not(.locked) {
+      background-color: #d25b34;
+      box-shadow: 0 0 12px #d25b34;
+    }
+
+    .upgrade-title {
+      font-weight: 700;
+      font-size: 18px;
+      user-select: text;
+    }
+
+    .upgrade-cost {
+      font-weight: 700;
+      font-size: 16px;
+      user-select: text;
+    }
+
+    .upgrade-description {
+      font-size: 14px;
+      font-weight: 400;
+      font-family: Arial, sans-serif;
+      user-select: text;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="left-panel">
+    <div id="coin-count">0</div>
+  </div>
+
+  <div class="right-panel">
+    <div id="upgrades-list">
+      <!-- Upgrade options inserted by JS -->
+    </div>
+  </div>
+
+  <div class="bottom-panel">
+    <div class="click-container">
+      <div id="coin">Clicks</div>
+    </div>
+    <div class="buttons-container">
+      <button class="yellow-btn" id="cpc-btn">Coins per click: 1</button>
+      <button class="yellow-btn" id="cps-btn">Coins per second: 0</button>
+      <button id="upgrade-btn">Upgrade</button>
+    </div>
+  </div>
+
+  <script>
+    // Game state
+    let coins = 0;
+    let coinsPerClick = 1;
+    let coinsPerSecond = 0;
+
+    // Upgrade data
+    const upgrades = [
+      {
+        id: 'betterClicker',
+        title: 'Better Clicker',
+        cost: 50,
+        description: '+1 coin per click',
+        apply: () => { coinsPerClick += 1; }
+      },
+      {
+        id: 'upgrades',
+        title: 'Upgrades',
+        cost: 100,
+        description: '+1 coin per second',
+        apply: () => { coinsPerSecond += 1; }
+      },
+      {
+        id: 'speedDrill',
+        title: 'Speed Drill',
+        cost: 500,
+        description: '+1 coin per second',
+        apply: () => { coinsPerSecond += 1; }
+      },
+      {
+        id: 'goldenBooster',
+        title: 'Golden Booster',
+        cost: 1000,
+        description: '+10% coins for 10 seconds',
+        apply: () => {
+          // For demo, just add coinsPerSecond x 0.1 for 10s
+          let bonus = coinsPerSecond * 0.1;
+          coinsPerSecond += bonus;
+          setTimeout(() => {
+            coinsPerSecond -= bonus;
+            updateUI();
+          }, 10000);
+        }
+      }
+    ];
+
+    // Elements
+    const coinCountEl = document.getElementById('coin-count');
+    const cpcBtn = document.getElementById('cpc-btn');
+    const cpsBtn = document.getElementById('cps-btn');
+    const upgradeBtn = document.getElementById('upgrade-btn');
+    const coinBtn = document.getElementById('coin');
+    const upgradesListEl = document.getElementById('upgrades-list');
+
+    // Initialize upgrades display
+    function renderUpgrades() {
+      upgradesListEl.innerHTML = '';
+      upgrades.forEach((upgrade) => {
+        const div = document.createElement('div');
+        div.classList.add('upgrade-option');
+        if (coins < upgrade.cost) {
+          div.classList.add('locked');
+        }
+        div.id = upgrade.id;
+        div.innerHTML = `
+          <div class="upgrade-title">${upgrade.title}</div>
+          <div class="upgrade-cost">$${upgrade.cost}</div>
+          <div class="upgrade-description">${upgrade.description}</div>
+        `;
+        div.addEventListener('click', () => {
+          if (coins >= upgrade.cost) {
+            coins -= upgrade.cost;
+            upgrade.apply();
+            upgrade.cost = Math.floor(upgrade.cost * 1.5);
+            renderUpgrades();
+            updateUI();
+          }
+        });
+        upgradesListEl.appendChild(div);
+      });
+    }
+
+    // Click on coin
+    coinBtn.addEventListener('click', () => {
+      coins += coinsPerClick;
+      updateUI();
+    });
+
+    // Upgrade button: will buy first upgrade (Better Clicker) if affordable
+    upgradeBtn.addEventListener('click', () => {
+      let first = upgrades[0];
+      if (coins >= first.cost) {
+        coins -= first.cost;
+        first.apply();
+        first.cost = Math.floor(first.cost * 1.5);
+        renderUpgrades();
+        updateUI();
+      }
+    });
+
+    // Update all UI elements
+    function updateUI() {
+      coinCountEl.textContent = coins;
+      cpcBtn.textContent = `Coins per click: ${coinsPerClick}`;
+      cpsBtn.textContent = `Coins per second: ${coinsPerSecond}`;
+      renderUpgrades();
+    }
+
+    // Passive coins per second
+    setInterval(() => {
+      coins += coinsPerSecond;
+      updateUI();
+    }, 1000);
+
+    // Initial render
+    renderUpgrades();
+    updateUI();
+
+  </script>
+</body>
+</html>
