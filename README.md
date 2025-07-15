@@ -1,0 +1,2 @@
+# Coin-Getter
+Coin game.
